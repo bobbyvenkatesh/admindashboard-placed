@@ -1,0 +1,21 @@
+{
+  "name": "placed-admin-intelligence",
+  "version": "1.0.0",
+  "description": "Placement & Assessment Intelligence Dashboard — Full Cloud Working Model",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "tunnel": "npx localtunnel --port 3000"
+  },
+  "keywords": [
+    "placement",
+    "assessment",
+    "dashboard",
+    "intelligence",
+    "supabase",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "MIT"
+}
