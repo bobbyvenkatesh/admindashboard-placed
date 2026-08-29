@@ -367,8 +367,8 @@
 const {useState,useEffect,useRef,useMemo,createContext,useContext,useCallback} = React;
 
 /* ============================== SUPABASE CLIENT CONFIG ============================== */
-const DEFAULT_SUPABASE_URL = localStorage.getItem("placed_supabase_url") || "";
-const DEFAULT_SUPABASE_KEY = localStorage.getItem("placed_supabase_key") || "";
+const DEFAULT_SUPABASE_URL = localStorage.getItem("placed_supabase_url") || "https://fslpzikstscutxfrnxst.supabase.co";
+const DEFAULT_SUPABASE_KEY = localStorage.getItem("placed_supabase_key") || "sb_publishable_0u-uFjMu-4oyzzG-rVhaHg_07QaW4BQ";
 
 let supabase = null;
 if(window.supabase && DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY){
@@ -760,7 +760,7 @@ function SupabaseSetupModal({onClose, onConnected}){
     setTesting(true);
     try {
       const client = window.supabase.createClient(url.trim(), key.trim());
-      const { data, error } = await client.from("institutions").select("id").limit(1);
+      const { data, error } = await client.from("admin_institutions").select("id").limit(1);
       if(error && error.code !== "PGRST116"){
         throw error;
       }
@@ -822,7 +822,7 @@ function InviteInstitutionModal({onClose, onAdd}){
     };
 
     if(supabase){
-      const { error } = await supabase.from("institutions").insert([inst]);
+      const { error } = await supabase.from("admin_institutions").insert([inst]);
       if(error){
         toast("DB Error: " + error.message);
         return;
@@ -886,7 +886,7 @@ function CreateAssessmentModal({onClose, onAdd, institutions}){
     };
 
     if(supabase){
-      const { error } = await supabase.from("assessments").insert([newAss]);
+      const { error } = await supabase.from("admin_assessments").insert([newAss]);
       if(error){
         toast("DB Error: " + error.message);
         return;
@@ -1009,7 +1009,7 @@ function UploadBatchModal({onClose, onAddBatch, institutions}){
         }
 
         if(supabase){
-          const { error } = await supabase.from("students").insert(records);
+          const { error } = await supabase.from("admin_students").insert(records);
           if(error){
             toast("DB Insert Error: " + error.message);
             setParsing(false);
@@ -1105,7 +1105,7 @@ function AssignDriveModal({onClose, onAddDrive, institutions, departments}){
     };
 
     if(supabase){
-      const { error } = await supabase.from("placement_drives").insert([newDrive]);
+      const { error } = await supabase.from("admin_placement_drives").insert([newDrive]);
       if(error){
         toast("DB Error: " + error.message);
         return;
@@ -1257,7 +1257,7 @@ function StudentDetailModal({student, onClose, onAddNotification}){
       time: "Just now"
     };
     if(supabase){
-      await supabase.from("notifications").insert([notif]);
+      await supabase.from("admin_notifications").insert([notif]);
     }
     if(onAddNotification) onAddNotification(notif);
     toast(`TPO notification logged for ${student.name}.`);
@@ -1273,7 +1273,7 @@ function StudentDetailModal({student, onClose, onAddNotification}){
       time: "Just now"
     };
     if(supabase){
-      await supabase.from("notifications").insert([notif]);
+      await supabase.from("admin_notifications").insert([notif]);
     }
     if(onAddNotification) onAddNotification(notif);
     toast(`Mentor assigned to ${student.name}.`);
@@ -2176,7 +2176,7 @@ function NotificationsView({notifications = [], setNotifications}){
 
   const markAllRead = async ()=>{
     if(supabase){
-      await supabase.from("notifications").update({ read: true }).eq("read", false);
+      await supabase.from("admin_notifications").update({ read: true }).eq("read", false);
     }
     setNotifications(prev => prev.map(n=>({...n, read:true})));
     toast("All notifications marked as read.");
@@ -2301,11 +2301,11 @@ function App(){
     if(!supabase) return;
     try {
       const [instRes, studRes, driveRes, assRes, notifRes] = await Promise.all([
-        supabase.from("institutions").select("*").order("created_at", {ascending:false}),
-        supabase.from("students").select("*").order("created_at", {ascending:false}),
-        supabase.from("placement_drives").select("*").order("created_at", {ascending:false}),
-        supabase.from("assessments").select("*").order("created_at", {ascending:false}),
-        supabase.from("notifications").select("*").order("created_at", {ascending:false}),
+        supabase.from("admin_institutions").select("*").order("created_at", {ascending:false}),
+        supabase.from("admin_students").select("*").order("created_at", {ascending:false}),
+        supabase.from("admin_placement_drives").select("*").order("created_at", {ascending:false}),
+        supabase.from("admin_assessments").select("*").order("created_at", {ascending:false}),
+        supabase.from("admin_notifications").select("*").order("created_at", {ascending:false}),
       ]);
 
       if(instRes.data) setInstitutions(instRes.data);
