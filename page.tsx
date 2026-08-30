@@ -16,7 +16,7 @@ export default async function Page() {
   return (
     <main style={{ padding: 32, fontFamily: "system-ui, sans-serif", maxWidth: 800, margin: "0 auto" }}>
       <h1>Placement &amp; Assessment Intelligence</h1>
-      <p style={{ color: "#666" }}>Supabase Live Connected Candidates</p>
+      <p style={{ color: "#6B7280" }}>Supabase Live Connected Candidates</p>
       <ul style={{ lineHeight: 1.8 }}>
         {students && students.length > 0 ? (
           students.map((student: any) => (

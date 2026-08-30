@@ -15,23 +15,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   :root{
-    --bg:#F6F7FA;
+    --bg:#F8FAFC;
     --surface:#FFFFFF;
-    --surface-alt:#F0F2F6;
-    --ink:#0F172A;
-    --ink-soft:#51586b;
-    --ink-faint:#9398a8;
-    --border:#E6E9EF;
-    --border-soft:#EFF1F5;
-    --brand:#4F46E5;
-    --brand-2:#7C6FF0;
-    --brand-soft:#EEEDFD;
-    --good:#0E9F6E;
-    --good-soft:#E4F8EF;
-    --warn:#D98A1A;
-    --warn-soft:#FCF0DC;
-    --bad:#DC4B4B;
-    --bad-soft:#FCEAEA;
+    --surface-alt:#F1F5F9;
+    --ink:#111827;
+    --ink-soft:#6B7280;
+    --ink-faint:#9CA3AF;
+    --border:#E5E7EB;
+    --border-soft:#F3F4F6;
+    --brand:#2563EB;
+    --brand-2:#3B82F6;
+    --brand-soft:#EFF6FF;
+    --good:#22C55E;
+    --good-soft:#F0FDF4;
+    --warn:#F59E0B;
+    --warn-soft:#FFF7ED;
+    --bad:#EF4444;
+    --bad-soft:#FEF2F2;
     --r-lg:20px;
     --r-md:16px;
     --r-sm:10px;
@@ -51,8 +51,8 @@
   .mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; font-feature-settings:"tnum";}
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-track{background:transparent;}
-  ::-webkit-scrollbar-thumb{background:#D6DAE3;border-radius:8px;}
-  ::-webkit-scrollbar-thumb:hover{background:#C1C6D2;}
+  ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:8px;}
+  ::-webkit-scrollbar-thumb:hover{background:#94A3B8;}
   button{font-family:inherit;cursor:pointer;}
   input,select,textarea{font-family:inherit;}
   a{color:inherit;text-decoration:none;}
@@ -76,7 +76,7 @@
     width:34px;height:34px;border-radius:10px;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));
     display:flex;align-items:center;justify-content:center;
-    box-shadow:0 4px 12px rgba(79,70,229,.35);
+    box-shadow:0 4px 12px rgba(37,99,235,.35);
     flex-shrink:0;
   }
   .brand-name{font-weight:800;font-size:16.5px;letter-spacing:-.02em;line-height:1;}
@@ -125,7 +125,7 @@
   }
   .main{flex:1;margin-left:248px;display:flex;flex-direction:column;min-width:0;}
   .header{
-    height:64px;background:rgba(246,247,250,.85);backdrop-filter:blur(8px);
+    height:64px;background:rgba(248,250,252,.85);backdrop-filter:blur(8px);
     border-bottom:1px solid var(--border);
     display:flex;align-items:center;gap:14px;
     padding:0 24px;position:sticky;top:0;z-index:30;
@@ -138,7 +138,7 @@
     width:320px;max-width:40vw;cursor:pointer;
     transition:border-color .15s, box-shadow .15s;
   }
-  .search-box:hover{border-color:#CBD1DE;box-shadow:var(--sh-sm);}
+  .search-box:hover{border-color:#CBD5E1;box-shadow:var(--sh-sm);}
   .search-box input{border:none;outline:none;background:transparent;width:100%;font-size:13px;color:var(--ink);cursor:pointer;}
   .search-box input::placeholder{color:var(--ink-faint);}
   .kbd{font-size:10.5px;color:var(--ink-faint);border:1px solid var(--border);border-radius:5px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;}
@@ -147,7 +147,7 @@
     border:1px solid var(--border);border-radius:10px;padding:7px 12px;
     font-size:13px;font-weight:600;color:var(--ink);
   }
-  .switcher:hover{border-color:#CBD1DE;}
+  .switcher:hover{border-color:#CBD5E1;}
   .header-spacer{flex:1;}
   .icon-btn{
     width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
@@ -172,7 +172,7 @@
   .btn-primary{background:var(--ink);color:#fff;}
   .btn-primary:hover{box-shadow:var(--sh-md);background:#1E293B;}
   .btn-brand{background:var(--brand);color:#fff;}
-  .btn-brand:hover{box-shadow:0 8px 20px rgba(79,70,229,.28);background:#4338CA;}
+  .btn-brand:hover{box-shadow:0 8px 20px rgba(37,99,235,.28);background:#1D4ED8;}
   .btn-ghost{background:var(--surface);color:var(--ink);border-color:var(--border);}
   .btn-ghost:hover{background:var(--surface-alt);}
   .btn-sm{padding:6px 11px;font-size:12px;border-radius:8px;}
@@ -426,7 +426,7 @@ function computeReadiness(a,c,comm,resume,interviewDone){
 }
 function riskOf(score){ if(score>=75) return "Low"; if(score>=55) return "Medium"; return "High"; }
 
-const instColor = (short)=>({CIE:"#4F46E5",VRTU:"#0E9F6E",AGCE:"#D98A1A",BIS:"#DC4B4B",KPC:"#0EA5B7",SMCT:"#8B5CF6"}[short] || "#4F46E5");
+const instColor = (short)=>({CIE:"#2563EB",VRTU:"#22C55E",AGCE:"#F59E0B",BIS:"#EF4444",KPC:"#06B6D4",SMCT:"#7C3AED"}[short] || "#2563EB");
 
 /* ============================== CSV DOWNLOAD HELPER ============================== */
 function exportCSV(filename, headers, rows){
@@ -510,23 +510,23 @@ function TrendChart({data = []}){
       <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%" preserveAspectRatio="none">
         <defs>
           <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.28"/>
-            <stop offset="100%" stopColor="#4F46E5" stopOpacity="0"/>
+            <stop offset="0%" stopColor="#2563EB" stopOpacity="0.28"/>
+            <stop offset="100%" stopColor="#2563EB" stopOpacity="0"/>
           </linearGradient>
         </defs>
         {yTicks.map(t=>(
           <g key={t}>
-            <line x1={padL} x2={w-padR} y1={yFor(t)} y2={yFor(t)} stroke="#EFF1F5" strokeWidth="1"/>
-            <text x={padL-8} y={yFor(t)+3} textAnchor="end" fontSize="9.5" fontFamily="IBM Plex Mono" fill="#9398a8">{t}</text>
+            <line x1={padL} x2={w-padR} y1={yFor(t)} y2={yFor(t)} stroke="#F1F5F9" strokeWidth="1"/>
+            <text x={padL-8} y={yFor(t)+3} textAnchor="end" fontSize="9.5" fontFamily="IBM Plex Mono" fill="#9CA3AF">{t}</text>
           </g>
         ))}
         <path d={areaD} fill="url(#trendFill)" stroke="none"/>
-        <path d={pathD} fill="none" stroke="#4F46E5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d={pathD} fill="none" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
         {data.map((d,i)=>(
           <g key={i} onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(null)} style={{cursor:"pointer"}}>
             <circle cx={xFor(i)} cy={yFor(d.v)} r={hover===i?7:9} fill="transparent"/>
-            <circle cx={xFor(i)} cy={yFor(d.v)} r={hover===i?5:3.5} fill="#4F46E5" stroke="#fff" strokeWidth="1.5"/>
-            <text x={xFor(i)} y={h-8} textAnchor="middle" fontSize="9.5" fontFamily="IBM Plex Mono" fill="#9398a8">{d.w}</text>
+            <circle cx={xFor(i)} cy={yFor(d.v)} r={hover===i?5:3.5} fill="#2563EB" stroke="#fff" strokeWidth="1.5"/>
+            <text x={xFor(i)} y={h-8} textAnchor="middle" fontSize="9.5" fontFamily="IBM Plex Mono" fill="#9CA3AF">{d.w}</text>
           </g>
         ))}
       </svg>
@@ -564,18 +564,18 @@ function DeptChart({students = [], departments = []}){
       <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%" preserveAspectRatio="none">
         {yTicks.map(t=>(
           <g key={t}>
-            <line x1={padL} x2={w-padR} y1={yFor(t)} y2={yFor(t)} stroke="#EFF1F5" strokeWidth="1"/>
-            <text x={padL-8} y={yFor(t)+3} textAnchor="end" fontSize="9.5" fontFamily="IBM Plex Mono" fill="#9398a8">{t}</text>
+            <line x1={padL} x2={w-padR} y1={yFor(t)} y2={yFor(t)} stroke="#F1F5F9" strokeWidth="1"/>
+            <text x={padL-8} y={yFor(t)+3} textAnchor="end" fontSize="9.5" fontFamily="IBM Plex Mono" fill="#9CA3AF">{t}</text>
           </g>
         ))}
         {deptAgg.map((x,i)=>{
           const cx = padL + i*groupW + groupW/2;
           return (
             <g key={x.d} onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(null)} style={{cursor:"pointer"}}>
-              <rect x={cx-barW-2} y={yFor(x.coding)} width={barW} height={(h-padB)-yFor(x.coding)} rx="4" fill="#4F46E5" opacity={hover===null||hover===i?1:0.35}/>
-              <rect x={cx+2} y={yFor(x.aptitude)} width={barW} height={(h-padB)-yFor(x.aptitude)} rx="4" fill="#C7C2FA" opacity={hover===null||hover===i?1:0.35}/>
+              <rect x={cx-barW-2} y={yFor(x.coding)} width={barW} height={(h-padB)-yFor(x.coding)} rx="4" fill="#2563EB" opacity={hover===null||hover===i?1:0.35}/>
+              <rect x={cx+2} y={yFor(x.aptitude)} width={barW} height={(h-padB)-yFor(x.aptitude)} rx="4" fill="#BFDBFE" opacity={hover===null||hover===i?1:0.35}/>
               <rect x={cx-groupW/2} y={padT} width={groupW} height={h-padT-padB} fill="transparent"/>
-              <text x={cx} y={h-10} textAnchor="middle" fontSize="10" fontFamily="Inter" fontWeight="600" fill="#51586b">{x.label}</text>
+              <text x={cx} y={h-10} textAnchor="middle" fontSize="10" fontFamily="Inter" fontWeight="600" fill="#6B7280">{x.label}</text>
             </g>
           );
         })}
@@ -586,8 +586,8 @@ function DeptChart({students = [], departments = []}){
         </div>
       )}
       <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:2}}>
-        <span style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,color:"var(--ink-soft)"}}><span style={{width:9,height:9,borderRadius:"50%",background:"#4F46E5",display:"inline-block"}}></span>Coding</span>
-        <span style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,color:"var(--ink-soft)"}}><span style={{width:9,height:9,borderRadius:"50%",background:"#C7C2FA",display:"inline-block"}}></span>Aptitude</span>
+        <span style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,color:"var(--ink-soft)"}}><span style={{width:9,height:9,borderRadius:"50%",background:"#2563EB",display:"inline-block"}}></span>Coding</span>
+        <span style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,color:"var(--ink-soft)"}}><span style={{width:9,height:9,borderRadius:"50%",background:"#BFDBFE",display:"inline-block"}}></span>Aptitude</span>
       </div>
     </div>
   );
@@ -610,9 +610,9 @@ function CompletionDonut({students = []}){
   }
 
   const segs = [
-    {label:"Completed",v:done,color:"#0E9F6E"},
-    {label:"Scheduled",v:sched,color:"#D98A1A"},
-    {label:"Pending",v:pend,color:"#E6E9EF"},
+    {label:"Completed",v:done,color:"#22C55E"},
+    {label:"Scheduled",v:sched,color:"#F59E0B"},
+    {label:"Pending",v:pend,color:"#E5E7EB"},
   ];
   const size=170,stroke=20,r=(size-stroke)/2,c=2*Math.PI*r;
   const [hover,setHover] = useState(null);
@@ -630,7 +630,7 @@ function CompletionDonut({students = []}){
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
       <div style={{position:"relative",width:size,height:size}}>
         <svg width={size} height={size} style={{transform:"rotate(-90deg)", transformOrigin:"center"}}>
-          <circle cx={size/2} cy={size/2} r={r} stroke="#EFF1F5" strokeWidth={stroke} fill="none"/>
+          <circle cx={size/2} cy={size/2} r={r} stroke="#F1F5F9" strokeWidth={stroke} fill="none"/>
           {renderedSegs.map((s,i)=>(
             <circle key={i} cx={size/2} cy={size/2} r={r} stroke={s.color} strokeWidth={hover===i?stroke+3:stroke} fill="none"
               strokeDasharray={`${s.dash} ${c-s.dash}`} strokeDashoffset={s.offset}
@@ -668,7 +668,7 @@ function DistributionChart({students = []}){
 
   const buckets = [[0,40],[40,55],[55,75],[75,90],[90,101]];
   const labels = ["0–40","40–55","55–75","75–90","90–100"];
-  const colors = ["#DC4B4B","#E08E5C","#D98A1A","#7C6FF0","#0E9F6E"];
+  const colors = ["#EF4444","#F97316","#F59E0B","#3B82F6","#22C55E"];
   const counts = buckets.map(([lo,hi])=> students.filter(s=> (s.readiness||0)>=lo && (s.readiness||0)<hi).length);
   const w=560,h=210,padL=28,padR=10,padT=14,padB=30;
   const max = Math.max(...counts,4);
@@ -679,14 +679,14 @@ function DistributionChart({students = []}){
   return (
     <div style={{height:210,position:"relative"}}>
       <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%" preserveAspectRatio="none">
-        <line x1={padL} x2={w-padR} y1={h-padB} y2={h-padB} stroke="#EFF1F5" strokeWidth="1"/>
+        <line x1={padL} x2={w-padR} y1={h-padB} y2={h-padB} stroke="#F1F5F9" strokeWidth="1"/>
         {counts.map((v,i)=>{
           const cx = padL + i*barSlot + barSlot/2;
           return (
             <g key={i} onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(null)} style={{cursor:"pointer"}}>
               <rect x={cx-barW/2} y={yFor(v)} width={barW} height={(h-padB)-yFor(v)} rx="6" fill={colors[i]} opacity={hover===null||hover===i?1:0.4}/>
               <text x={cx} y={yFor(v)-8} textAnchor="middle" fontSize="11" fontFamily="IBM Plex Mono" fontWeight="700" fill="var(--ink)">{v}</text>
-              <text x={cx} y={h-10} textAnchor="middle" fontSize="10" fontFamily="IBM Plex Mono" fill="#9398a8">{labels[i]}</text>
+              <text x={cx} y={h-10} textAnchor="middle" fontSize="10" fontFamily="IBM Plex Mono" fill="#9CA3AF">{labels[i]}</text>
             </g>
           );
         })}
@@ -1300,22 +1300,22 @@ function StudentDetailModal({student, onClose, onAddNotification}){
         <div className="card" style={{padding:12}}>
           <div style={{fontSize:11,color:"var(--ink-faint)",fontWeight:700,textTransform:"uppercase"}}>Aptitude</div>
           <div className="mono" style={{fontSize:18,fontWeight:700,marginTop:4}}>{student.aptitude || 0}%</div>
-          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.aptitude||0)+"%",background:"#4F46E5"}}></div></div>
+          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.aptitude||0)+"%",background:"#2563EB"}}></div></div>
         </div>
         <div className="card" style={{padding:12}}>
           <div style={{fontSize:11,color:"var(--ink-faint)",fontWeight:700,textTransform:"uppercase"}}>Coding & DSA</div>
           <div className="mono" style={{fontSize:18,fontWeight:700,marginTop:4}}>{student.coding || 0}%</div>
-          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.coding||0)+"%",background:"#7C6FF0"}}></div></div>
+          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.coding||0)+"%",background:"#3B82F6"}}></div></div>
         </div>
         <div className="card" style={{padding:12}}>
           <div style={{fontSize:11,color:"var(--ink-faint)",fontWeight:700,textTransform:"uppercase"}}>Communication</div>
           <div className="mono" style={{fontSize:18,fontWeight:700,marginTop:4}}>{student.communication || 0}%</div>
-          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.communication||0)+"%",background:"#0E9F6E"}}></div></div>
+          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.communication||0)+"%",background:"#22C55E"}}></div></div>
         </div>
         <div className="card" style={{padding:12}}>
           <div style={{fontSize:11,color:"var(--ink-faint)",fontWeight:700,textTransform:"uppercase"}}>Resume Quality</div>
           <div className="mono" style={{fontSize:18,fontWeight:700,marginTop:4}}>{student.resume || 0}%</div>
-          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.resume||0)+"%",background:"#D98A1A"}}></div></div>
+          <div className="progress-track" style={{marginTop:8}}><div className="progress-fill" style={{width:(student.resume||0)+"%",background:"#F59E0B"}}></div></div>
         </div>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"var(--surface-alt)",borderRadius:10,marginTop:4}}>
@@ -1619,11 +1619,11 @@ function DashboardView({openModal, setView, setStudentFilterRisk, onSelectStuden
       </div>
 
       <div className="grid grid-kpi" style={{marginBottom:16}}>
-        <Kpi label="Institutions" value={institutions.length} icon="building" accent="#4F46E5"/>
-        <Kpi label="Total Students" value={students.length.toLocaleString()} icon="users" accent="#0E9F6E"/>
-        <Kpi label="Avg Readiness" value={avgReadiness} icon="gauge" accent="#7C6FF0"/>
-        <Kpi label="Students at Risk" value={students.filter(s=>s.risk==="High").length} icon="alert" accent="#DC4B4B"/>
-        <Kpi label="Upcoming Drives" value={upcoming} icon="briefcase" accent="#D98A1A"/>
+        <Kpi label="Institutions" value={institutions.length} icon="building" accent="#2563EB"/>
+        <Kpi label="Total Students" value={students.length.toLocaleString()} icon="users" accent="#22C55E"/>
+        <Kpi label="Avg Readiness" value={avgReadiness} icon="gauge" accent="#3B82F6"/>
+        <Kpi label="Students at Risk" value={students.filter(s=>s.risk==="High").length} icon="alert" accent="#EF4444"/>
+        <Kpi label="Upcoming Drives" value={upcoming} icon="briefcase" accent="#F59E0B"/>
       </div>
 
       <div className="grid grid-4chart" style={{marginBottom:16}}>
