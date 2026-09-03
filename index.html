@@ -2371,6 +2371,10 @@ function LockScreen({onSignIn}){
   const handleSignIn = ()=>{
     setSigningIn(true);
     setTimeout(()=>{
+      localStorage.removeItem("placed_admin_logged_out");
+      sessionStorage.removeItem("placed_admin_logged_out");
+      sessionStorage.setItem("placed_admin_auth", "true");
+      localStorage.setItem("placed_admin_auth", "true");
       onSignIn();
       toast("Welcome back! Admin session restored.");
     }, 350);
@@ -2491,7 +2495,6 @@ function App(){
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedInst, setSelectedInst] = useState("All");
   const [filterRisk, setFilterRisk] = useState("All");
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
 
   // Pure live state collections
   const [institutions, setInstitutions] = useState([]);
@@ -2572,10 +2575,6 @@ function App(){
   const handleAddNotification = (notif)=> setNotifications(prev=>[notif, ...prev]);
 
   const unreadNotifs = notifications.filter(n=>!n.read).length;
-
-  if(isLoggedOut){
-    return <LockScreen onSignIn={()=>setIsLoggedOut(false)}/>;
-  }
 
   return (
     <div className="shell">
@@ -2667,7 +2666,26 @@ function App(){
         <SupabaseSetupModal onClose={closeModal} onConnected={()=>{ setIsSupabaseConnected(true); loadCloudData(); }}/>
       )}
       {modal && modal.type==="confirm_logout" && (
-        <LogoutModal onClose={closeModal} onConfirm={()=>{ closeModal(); setIsLoggedOut(true); toast("You have been logged out."); }}/>
+        <LogoutModal onClose={closeModal} onConfirm={async ()=>{ 
+          closeModal(); 
+          try {
+            if(supabase && supabase.auth){
+              await supabase.auth.signOut();
+            }
+          } catch(e){
+            console.error("SignOut error:", e);
+          }
+          localStorage.removeItem("placed_admin_logged_out");
+          sessionStorage.removeItem("placed_admin_logged_out");
+          sessionStorage.removeItem("placed_admin_auth");
+          localStorage.removeItem("placed_admin_auth");
+          Object.keys(localStorage).forEach(k => {
+            if(k.startsWith("sb-") && k.endsWith("-auth-token")) {
+              localStorage.removeItem(k);
+            }
+          });
+          toast("You have been logged out of the administrative session."); 
+        }}/>
       )}
 
       {selectedStudent && (
