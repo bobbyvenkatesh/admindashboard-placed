@@ -1519,7 +1519,7 @@ const NAV = [
     {id:"departments",label:"Departments",icon:"layers"},
   ]},
   {group:"Readiness", items:[
-    {id:"assessments",label:"Assessments",icon:"check-sq"},
+    {id:"assessments",label:"Upload",icon:"check-sq"},
     {id:"drives",label:"Placement Drives",icon:"briefcase"},
     {id:"analytics",label:"Analytics",icon:"activity"},
   ]},
@@ -2137,30 +2137,195 @@ function DepartmentsView({students = []}){
   );
 }
 
-function AssessmentsView({assessments = [], openModal}){
+function AssessmentsView({assessments = [], openModal, studyModules = [], setStudyModules}){
   const toast = useToast();
   const [tab,setTab] = useState("All");
   const types = ["All","Aptitude Test","Coding Challenge","Mock Test","Communication"];
   const rows = assessments.filter(a=> tab==="All"||a.type===tab);
+
+  // Study Material Upload Form State
+  const fileInputRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [docName, setDocName] = useState("");
+  const [mainTopic, setMainTopic] = useState("Quantitative Aptitude / Mathematics");
+  const [uploading, setUploading] = useState(false);
+
+  // Search & Filter State for Uploaded Study Materials
+  const [searchQuery, setSearchQuery] = useState("");
+  const [topicFilter, setTopicFilter] = useState("All Topics");
+
+  const TOPIC_OPTIONS = [
+    "Quantitative Aptitude / Mathematics",
+    "Logical & Analytical Reasoning",
+    "Verbal Ability / English",
+    "Data Interpretation",
+    "General Knowledge & Current Affairs",
+    "Computer & IT Fundamentals",
+    "Subject/Technical Knowledge",
+    "Research & Academic Aptitude",
+    "Communication & Employability Skills"
+  ];
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      if (!docName.trim()) {
+        const rawName = file.name.replace(/\.[^/.]+$/, "");
+        setDocName(rawName);
+      }
+    }
+  };
+
+  const handleUploadStudyMaterial = async () => {
+    if (!selectedFile) {
+      toast("Please select a document file to upload.");
+      return;
+    }
+    if (!docName.trim()) {
+      toast("Please enter a document name.");
+      return;
+    }
+    if (!mainTopic) {
+      toast("Please select a main topic.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64Data = event.target.result;
+        const newId = "sm_" + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        const metadata = {
+          file_name: selectedFile.name,
+          file_size: selectedFile.size,
+          file_type: selectedFile.type || "application/octet-stream",
+          main_topic: mainTopic,
+          file_data: base64Data,
+          uploaded_at: new Date().toISOString()
+        };
+
+        const dbRecord = {
+          id: newId,
+          title: docName.trim(),
+          subject: mainTopic,
+          description: JSON.stringify(metadata),
+          created_at: new Date().toISOString()
+        };
+
+        if (supabase) {
+          try {
+            const { error } = await supabase.from("study_modules").insert([dbRecord]);
+            if (error) {
+              console.warn("Supabase study_modules insert:", error.message);
+            }
+          } catch(e) {
+            console.warn("Supabase insert error:", e);
+          }
+        }
+
+        const newModuleItem = {
+          id: newId,
+          title: docName.trim(),
+          subject: mainTopic,
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+          fileType: selectedFile.type || "Document",
+          fileData: base64Data,
+          createdAt: new Date().toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"})
+        };
+
+        if (setStudyModules) {
+          setStudyModules(prev => {
+            const updated = [newModuleItem, ...prev];
+            localStorage.setItem("placed_study_modules", JSON.stringify(updated));
+            return updated;
+          });
+        }
+
+        setSelectedFile(null);
+        setDocName("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setUploading(false);
+        toast("Study material uploaded successfully.");
+      };
+
+      reader.readAsDataURL(selectedFile);
+    } catch(err) {
+      setUploading(false);
+      toast("Upload failed: " + err.message);
+    }
+  };
+
+  const handleDeleteStudyMaterial = async (item) => {
+    if (supabase) {
+      try {
+        await supabase.from("study_modules").delete().eq("id", item.id);
+      } catch(e){}
+    }
+    if (setStudyModules) {
+      setStudyModules(prev => {
+        const updated = prev.filter(x => x.id !== item.id);
+        localStorage.setItem("placed_study_modules", JSON.stringify(updated));
+        return updated;
+      });
+    }
+    toast(`Deleted "${item.title}".`);
+  };
+
+  const handleDownloadFile = (item) => {
+    if (item.fileData) {
+      const link = document.createElement("a");
+      link.href = item.fileData;
+      link.download = item.fileName || (item.title + ".pdf");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast(`Viewing / Downloading "${item.title}"`);
+    } else {
+      toast(`Viewing document "${item.title}"`);
+    }
+  };
+
+  const filteredStudyMaterials = (studyModules || []).filter(item => {
+    const matchesTopic = topicFilter === "All Topics" || item.subject === topicFilter;
+    const matchesSearch = !searchQuery.trim() || 
+      (item.title && item.title.toLowerCase().includes(searchQuery.toLowerCase().trim())) ||
+      (item.fileName && item.fileName.toLowerCase().includes(searchQuery.toLowerCase().trim()));
+    return matchesTopic && matchesSearch;
+  });
+
+  const formatFileSize = (bytes) => {
+    if (!bytes || bytes === 0) return "—";
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   return (
     <div>
       <div className="page-head">
-        <div><div className="page-title">Assessments & Tests</div><div className="page-desc">Mock tests, coding sprints, aptitude & communication assessments</div></div>
+        <div><div className="page-title">Upload</div><div className="page-desc">Assessment management & study material document repository</div></div>
         <button className="btn btn-primary" onClick={()=>openModal("assessment")}><Icon name="plus" size={15} color="#fff"/> Create assessment</button>
       </div>
+
+      {/* 1. EXISTING ASSESSMENT BOX (100% UNCHANGED) */}
       <div className="tabs">
         {types.map(t=> <button key={t} className={"tab-btn"+(tab===t?" active":"")} onClick={()=>setTab(t)}>{t}</button>)}
       </div>
       {rows.length === 0 ? (
-        <div className="card">
-          <div className="empty-state" style={{padding:"60px 20px"}}>
+        <div className="card" style={{marginBottom:24}}>
+          <div className="empty-state" style={{padding:"50px 20px"}}>
             <Icon name="check-sq" size={36}/>
             <div className="empty-title">No assessments available yet</div>
             <div>Create an assessment or mock test to begin evaluating candidate performance.</div>
           </div>
         </div>
       ) : (
-        <div className="grid" style={{gridTemplateColumns:"repeat(2,1fr)",gap:16}}>
+        <div className="grid" style={{gridTemplateColumns:"repeat(2,1fr)",gap:16,marginBottom:24}}>
           {rows.map((a,i)=>(
             <div className="card" key={a.id||i}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
@@ -2183,6 +2348,179 @@ function AssessmentsView({assessments = [], openModal}){
           ))}
         </div>
       )}
+
+      {/* 2. NEW SECOND BOX: UPLOAD STUDY MATERIAL */}
+      <SectionCard 
+        title="Upload Study Material" 
+        sub="Upload documents directly to study_module repository"
+        style={{marginBottom:24}}
+      >
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+            <div>
+              <label className="field-label">Select Document <span style={{color:"var(--brand)",fontWeight:600}}>(PDF, DOCX, PPTX, TXT)</span></label>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="field-input"
+                style={{padding:"8px 12px",cursor:"pointer"}}
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.csv,.xlsx"
+              />
+              {selectedFile && (
+                <div style={{fontSize:12,color:"var(--ink-soft)",marginTop:6,display:"flex",alignItems:"center",gap:6}}>
+                  <Icon name="check" size={14} color="var(--good)"/> File: <strong>{selectedFile.name}</strong> ({formatFileSize(selectedFile.size)})
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="field-label">Document / Study Material Name</label>
+              <input 
+                className="field-input" 
+                placeholder="e.g. Number System 1" 
+                value={docName} 
+                onChange={e=>setDocName(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="field-label">Main Topic</label>
+            <select className="field-input" value={mainTopic} onChange={e=>setMainTopic(e.target.value)}>
+              {TOPIC_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{display:"flex",justifyContent:"flex-start",marginTop:4}}>
+            <button className="btn btn-brand" onClick={handleUploadStudyMaterial} disabled={uploading}>
+              <Icon name="upload" size={15} color="#fff"/> {uploading ? "Uploading to study_module..." : "Upload"}
+            </button>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* 3. DOCUMENT LIST / VIEW SECTION: UPLOADED STUDY MATERIALS */}
+      <SectionCard 
+        title="Uploaded Study Materials" 
+        sub="Study documents currently stored in study_module"
+        right={
+          <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+            <div style={{position:"relative",display:"flex",alignItems:"center"}}>
+              <input 
+                className="field-input" 
+                placeholder="Search documents by name..." 
+                value={searchQuery} 
+                onChange={e=>setSearchQuery(e.target.value)}
+                style={{padding:"6px 12px 6px 30px",fontSize:12.5,width:240}}
+              />
+              <span style={{position:"absolute",left:10,top:7,pointerEvents:"none"}}>
+                <Icon name="search" size={14} color="var(--ink-faint)"/>
+              </span>
+              {searchQuery && (
+                <button 
+                  onClick={()=>setSearchQuery("")} 
+                  style={{position:"absolute",right:8,background:"none",border:"none",cursor:"pointer",color:"var(--ink-faint)"}}
+                  title="Clear search"
+                >
+                  <Icon name="x" size={12}/>
+                </button>
+              )}
+            </div>
+
+            <select 
+              className="field-input" 
+              value={topicFilter} 
+              onChange={e=>setTopicFilter(e.target.value)}
+              style={{padding:"6px 12px",fontSize:12.5,width:250}}
+            >
+              <option value="All Topics">All Topics</option>
+              {TOPIC_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+        }
+      >
+        {filteredStudyMaterials.length === 0 ? (
+          <div className="empty-state" style={{padding:"50px 20px"}}>
+            <Icon name="file" size={36}/>
+            <div className="empty-title">
+              {searchQuery || topicFilter !== "All Topics" ? "No matching study materials found" : "No study materials uploaded yet"}
+            </div>
+            <div style={{fontSize:12.5}}>
+              {searchQuery || topicFilter !== "All Topics" ? "Try adjusting your search term or topic filter." : "Upload study documents using the form above to populate the repository."}
+            </div>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Document Name</th>
+                  <th>Main Topic</th>
+                  <th>File Details</th>
+                  <th>Upload Date</th>
+                  <th style={{textAlign:"right"}}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudyMaterials.map((item, idx) => (
+                  <tr key={item.id || idx}>
+                    <td>
+                      <div style={{display:"flex",alignItems:"center",gap:10}}>
+                        <div style={{width:32,height:32,borderRadius:8,background:"var(--brand-soft)",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--brand)",flexShrink:0}}>
+                          <Icon name="file" size={16}/>
+                        </div>
+                        <div>
+                          <div className="cell-strong" style={{fontSize:13}}>{item.title}</div>
+                          <div className="row-user-sub" style={{fontSize:11}}>{item.fileName}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="pill pill-brand" style={{fontSize:11,fontWeight:600,padding:"4px 10px",whiteSpace:"nowrap"}}>
+                        {item.subject}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{fontSize:12,color:"var(--ink-soft)"}}>
+                        {formatFileSize(item.fileSize)}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{fontSize:12,color:"var(--ink-soft)"}}>
+                        {item.createdAt}
+                      </div>
+                    </td>
+                    <td style={{textAlign:"right"}}>
+                      <div style={{display:"inline-flex",gap:6}}>
+                        <button 
+                          className="btn btn-ghost btn-sm" 
+                          onClick={()=>handleDownloadFile(item)}
+                          title="Open / Download Document"
+                        >
+                          <Icon name="download" size={13}/> View/Open
+                        </button>
+                        <button 
+                          className="btn btn-ghost btn-sm" 
+                          onClick={()=>handleDeleteStudyMaterial(item)}
+                          style={{color:"var(--bad)",borderColor:"rgba(239,68,68,0.2)"}}
+                          title="Delete Study Material"
+                        >
+                          <Icon name="x" size={13} color="var(--bad)"/> Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
     </div>
   );
 }
@@ -2502,6 +2840,14 @@ function App(){
   const [drives, setDrives] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [studyModules, setStudyModules] = useState(() => {
+    try {
+      const local = localStorage.getItem("placed_study_modules");
+      return local ? JSON.parse(local) : [];
+    } catch(e) {
+      return [];
+    }
+  });
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(Boolean(supabase));
 
   // Dynamically derived list of departments
@@ -2523,12 +2869,13 @@ function App(){
   const loadCloudData = useCallback(async ()=>{
     if(!supabase) return;
     try {
-      const [instRes, studRes, driveRes, assRes, notifRes] = await Promise.all([
+      const [instRes, studRes, driveRes, assRes, notifRes, smRes] = await Promise.all([
         supabase.from("admin_institutions").select("*").order("created_at", {ascending:false}),
         supabase.from("admin_students").select("*").order("created_at", {ascending:false}),
         supabase.from("admin_placement_drives").select("*").order("created_at", {ascending:false}),
         supabase.from("admin_assessments").select("*").order("created_at", {ascending:false}),
         supabase.from("admin_notifications").select("*").order("created_at", {ascending:false}),
+        supabase.from("study_modules").select("*").order("created_at", {ascending:false}),
       ]);
 
       if(instRes.data) setInstitutions(instRes.data);
@@ -2536,6 +2883,28 @@ function App(){
       if(driveRes.data) setDrives(driveRes.data);
       if(assRes.data) setAssessments(assRes.data);
       if(notifRes.data) setNotifications(notifRes.data);
+      if(smRes && smRes.data && smRes.data.length > 0) {
+        const parsed = smRes.data.map(r => {
+          let meta = {};
+          try { meta = typeof r.description === 'string' && r.description.startsWith('{') ? JSON.parse(r.description) : {}; } catch(e){}
+          return {
+            id: r.id,
+            title: r.title,
+            subject: r.subject || meta.main_topic || "Quantitative Aptitude / Mathematics",
+            fileName: meta.file_name || r.title,
+            fileSize: meta.file_size || 0,
+            fileType: meta.file_type || "Document",
+            fileData: meta.file_data || null,
+            createdAt: r.created_at ? new Date(r.created_at).toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"}) : "Just now"
+          };
+        });
+        setStudyModules(prev => {
+          const ids = new Set(parsed.map(p=>p.id));
+          const merged = [...parsed, ...prev.filter(p => !ids.has(p.id))];
+          localStorage.setItem("placed_study_modules", JSON.stringify(merged));
+          return merged;
+        });
+      }
       setIsSupabaseConnected(true);
     } catch(err){
       console.error("Error loading cloud data:", err);
@@ -2632,7 +3001,7 @@ function App(){
             />
           )}
           {view==="departments" && <DepartmentsView students={filteredStudents}/>}
-          {view==="assessments" && <AssessmentsView assessments={assessments} openModal={openModal}/>}
+          {view==="assessments" && <AssessmentsView assessments={assessments} openModal={openModal} studyModules={studyModules} setStudyModules={setStudyModules}/>}
           {view==="drives" && <PlacementDrivesView drives={drives} openModal={openModal}/>}
           {view==="analytics" && <AnalyticsView students={filteredStudents} institutions={institutions}/>}
           {view==="reports" && <ReportsView openModal={openModal}/>}
