@@ -1534,7 +1534,9 @@ function Sidebar({view,setView,open,setOpen,unreadNotifs = 0,isSupabaseConnected
       {open && <div className="mobile-scrim show" onClick={()=>setOpen(false)}></div>}
       <aside className={"sidebar"+(open?" open":"")}>
         <div className="brand" onClick={()=>setView("dashboard")}>
-          <div className="brand-mark"><Icon name="gauge" size={18} color="#fff" strokeWidth={2}/></div>
+          <div className="brand-mark" style={{background:"#fff",padding:3,overflow:"hidden",boxShadow:"0 4px 14px rgba(0,0,0,.25)"}}>
+            <img src="/logo.png" alt="PLACED Logo" style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:6}}/>
+          </div>
           <div>
             <div className="brand-name">PLACED</div>
             <div className="brand-sub">Admin Intelligence</div>
@@ -2380,8 +2382,8 @@ function LockScreen({onSignIn}){
       <div className="watermark-bg" style={{opacity:0.08,filter:"invert(1)",left:"50%"}}></div>
       <div className="lock-card">
         <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
-          <div className="brand-mark" style={{width:54,height:54,borderRadius:16}}>
-            <Icon name="gauge" size={28} color="#fff" strokeWidth={2.2}/>
+          <div className="brand-mark" style={{width:60,height:60,borderRadius:16,background:"#fff",padding:4,overflow:"hidden",boxShadow:"0 8px 24px rgba(0,0,0,.15)"}}>
+            <img src="/logo.png" alt="PLACED Logo" style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:10}}/>
           </div>
         </div>
         <div style={{fontSize:22,fontWeight:800,letterSpacing:"-0.02em",color:"var(--ink)"}}>PLACED</div>
