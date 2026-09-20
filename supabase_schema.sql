@@ -6,10 +6,14 @@
 create table if not exists public.admin_institutions (
   id text primary key default ('inst_' || substr(md5(random()::text), 1, 8)),
   name text not null,
-  short text not null unique,
+  short text not null,
   city text default 'Campus',
+  state text default '',
   created_at timestamptz default now() not null
 );
+
+-- Ensure state column exists on existing installations
+alter table public.admin_institutions add column if not exists state text default '';
 
 -- 2. admin_students Table
 create table if not exists public.admin_students (
