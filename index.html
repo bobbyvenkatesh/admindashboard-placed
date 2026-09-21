@@ -1038,11 +1038,14 @@ function ConfirmDeleteInstitutionModal({institution, onClose, onConfirm}){
   );
 }
 
-function CreateAssessmentModal({onClose, onAdd, institutions}){
+function CreateAssessmentModal({onClose, onAdd, institutions, initialName}){
   const toast = useToast();
-  const [name,setName] = useState("");
-  const [type,setType] = useState("Aptitude Test");
-  const [date,setDate] = useState("");
+  const [name,setName] = useState(initialName || "");
+  const [topic,setTopic] = useState("Aptitude Test");
+  const [assType,setAssType] = useState("Practice/Simulation");
+  const [startDate,setStartDate] = useState("");
+  const [endDate,setEndDate] = useState("");
+  const [isInfinity,setIsInfinity] = useState(false);
   const [duration,setDuration] = useState(60);
   const [selectedInsts,setSelectedInsts] = useState([]);
 
@@ -1058,8 +1061,9 @@ function CreateAssessmentModal({onClose, onAdd, institutions}){
     const newAss = {
       id: "a_" + Math.random().toString(36).substr(2, 8),
       name: name.trim(),
-      type,
-      date: date ? new Date(date).toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"}) : "Scheduled",
+      type: topic,
+      assessmentType: assType,
+      date: startDate ? new Date(startDate).toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"}) : "Scheduled",
       completion: 0,
       avg: 0,
       duration: Number(duration) || 60,
@@ -1092,15 +1096,31 @@ function CreateAssessmentModal({onClose, onAdd, institutions}){
       </div>
       <div>
         <label className="field-label">Type</label>
-        <select className="field-input" value={type} onChange={e=>setType(e.target.value)}>
+        <select className="field-input" value={assType} onChange={e=>setAssType(e.target.value)}>
+          <option>Practice/Simulation</option><option>Assessment</option>
+        </select>
+      </div>
+      <div>
+        <label className="field-label">Topic</label>
+        <select className="field-input" value={topic} onChange={e=>setTopic(e.target.value)}>
           <option>Aptitude Test</option><option>Coding Challenge</option><option>Mock Test</option><option>Communication</option>
         </select>
       </div>
       <div style={{display:"flex",gap:12}}>
         <div style={{flex:1}}>
-          <label className="field-label">Scheduled date</label>
-          <input className="field-input" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
+          <label className="field-label">Start Date</label>
+          <input className="field-input" type="datetime-local" value={startDate} onChange={e=>setStartDate(e.target.value)}/>
         </div>
+        <div style={{flex:1}}>
+          <label className="field-label">End Date</label>
+          <input className="field-input" type="datetime-local" value={endDate} onChange={e=>setEndDate(e.target.value)} disabled={isInfinity} />
+          <div style={{marginTop: 6, display: "flex", alignItems: "center", gap: 6}}>
+            <input type="checkbox" id="infEnd" checked={isInfinity} onChange={e=>setIsInfinity(e.target.checked)} />
+            <label htmlFor="infEnd" style={{fontSize: 12}}>No end date (Infinity)</label>
+          </div>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:12}}>
         <div style={{flex:1}}>
           <label className="field-label">Duration (mins)</label>
           <input className="field-input" type="number" value={duration} onChange={e=>setDuration(e.target.value)}/>
@@ -1629,10 +1649,6 @@ function Sidebar({view,setView,open,setOpen,unreadNotifs = 0,isSupabaseConnected
           </div>
         </div>
 
-        <div className={"conn-badge " + (isSupabaseConnected ? "live" : "offline")} onClick={openConnectModal} title="Click to manage database connection">
-          <span className="conn-dot"></span>
-          <span>{isSupabaseConnected ? "Live Cloud Sync" : "Connect Supabase"}</span>
-        </div>
 
         <nav className="nav">
           {NAV.map(sec=>(
@@ -2237,6 +2253,13 @@ function AssessmentsView({assessments = [], openModal, studyModules = [], setStu
   const [mainTopic, setMainTopic] = useState("Quantitative Aptitude / Mathematics");
   const [uploading, setUploading] = useState(false);
 
+  // Question Upload Form State
+  const qFileInputRef = useRef(null);
+  const [qSelectedFile, setQSelectedFile] = useState(null);
+  const [qDocName, setQDocName] = useState("");
+  const [qMainTopic, setQMainTopic] = useState("Quantitative Aptitude / Mathematics");
+  const [qUploading, setQUploading] = useState(false);
+
   // Search & Filter State for Uploaded Study Materials
   const [searchQuery, setSearchQuery] = useState("");
   const [topicFilter, setTopicFilter] = useState("All Topics");
@@ -2262,6 +2285,30 @@ function AssessmentsView({assessments = [], openModal, studyModules = [], setStu
         setDocName(rawName);
       }
     }
+  };
+
+  const handleQFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setQSelectedFile(file);
+      if (!qDocName.trim()) {
+        const rawName = file.name.replace(/\.[^/.]+$/, "");
+        setQDocName(rawName);
+      }
+    }
+  };
+
+  const handleUploadQuestion = () => {
+    if (!qDocName) {
+      toast("Please enter a question name.");
+      return;
+    }
+    setQUploading(true);
+    setTimeout(() => {
+      setQUploading(false);
+      setQDocName("");
+      toast(`Question "${qDocName}" added successfully.`);
+    }, 1000);
   };
 
   const handleUploadStudyMaterial = async () => {
@@ -2294,10 +2341,19 @@ function AssessmentsView({assessments = [], openModal, studyModules = [], setStu
           uploaded_at: new Date().toISOString()
         };
 
+        const getSubjectId = (topic) => {
+          if (topic.includes("Quantitative") || topic.includes("Data")) return "quant";
+          if (topic.includes("Logical") || topic.includes("Reasoning")) return "reasoning";
+          if (topic.includes("Verbal") || topic.includes("Communication")) return "english";
+          if (topic.includes("Computer") || topic.includes("Technical")) return "tech";
+          return "general";
+        };
+
         const dbRecord = {
           id: newId,
           title: docName.trim(),
           subject: mainTopic,
+          subject_id: getSubjectId(mainTopic),
           description: JSON.stringify(metadata),
           created_at: new Date().toISOString()
         };
@@ -2306,10 +2362,16 @@ function AssessmentsView({assessments = [], openModal, studyModules = [], setStu
           try {
             const { error } = await placedClient.from("study_modules").insert([dbRecord]);
             if (error) {
+              toast("Database Error: " + error.message);
               console.warn("Supabase study_modules insert:", error.message);
+              setUploading(false);
+              return; // Stop execution, don't update UI
             }
           } catch(e) {
+            toast("Database Connection Error: " + e.message);
             console.warn("Supabase insert error:", e);
+            setUploading(false);
+            return;
           }
         }
 
@@ -2349,8 +2411,15 @@ function AssessmentsView({assessments = [], openModal, studyModules = [], setStu
   const handleDeleteStudyMaterial = async (item) => {
     if (supabase) {
       try {
-        await placedClient.from("study_modules").delete().eq("id", item.id);
-      } catch(e){}
+        const { error } = await placedClient.from("study_modules").delete().eq("id", item.id);
+        if (error) {
+          toast("Database Error: " + error.message);
+          return; // Stop execution, don't update UI
+        }
+      } catch(e) {
+        toast("Database Connection Error: " + e.message);
+        return;
+      }
     }
     if (setStudyModules) {
       setStudyModules(prev => {
@@ -2396,7 +2465,6 @@ function AssessmentsView({assessments = [], openModal, studyModules = [], setStu
     <div>
       <div className="page-head">
         <div><div className="page-title">Upload</div><div className="page-desc">Assessment management & study material document repository</div></div>
-        <button className="btn btn-primary" onClick={()=>openModal("assessment")}><Icon name="plus" size={15} color="#fff"/> Create assessment</button>
       </div>
 
       {/* 1. EXISTING ASSESSMENT BOX (100% UNCHANGED) */}
@@ -2436,9 +2504,43 @@ function AssessmentsView({assessments = [], openModal, studyModules = [], setStu
         </div>
       )}
 
-      {/* 2. NEW SECOND BOX: UPLOAD STUDY MATERIAL */}
+      {/* 2. NEW BOX: UPLOAD QUESTION */}
       <SectionCard 
-        title="Upload Study Material" 
+        title="Upload Question" 
+        sub="Upload question papers and assessments"
+        style={{marginBottom:24}}
+      >
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div>
+            <label className="field-label">Question / Assessment Name</label>
+            <input 
+              className="field-input" 
+              placeholder="e.g. Math Paper 1" 
+              value={qDocName} 
+              onChange={e=>setQDocName(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="field-label">Topic</label>
+            <select className="field-input" value={qMainTopic} onChange={e=>setQMainTopic(e.target.value)}>
+              {TOPIC_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{display:"flex",justifyContent:"flex-start",marginTop:4}}>
+            <button className="btn btn-primary" onClick={()=>openModal("assessment", qDocName)}>
+              <Icon name="plus" size={15} color="#fff"/> Create assessment
+            </button>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* 3. UPLOAD DOCUMENTS */}
+      <SectionCard 
+        title="Upload Documents" 
         sub="Upload documents directly to study_module repository"
         style={{marginBottom:24}}
       >
@@ -3155,7 +3257,7 @@ function App(){
       </div>
 
       {modal && modal.type==="assessment" && (
-        <CreateAssessmentModal onClose={closeModal} onAdd={handleAddAssessment} institutions={institutions}/>
+        <CreateAssessmentModal onClose={closeModal} onAdd={handleAddAssessment} institutions={institutions} initialName={modal.arg}/>
       )}
       {modal && modal.type==="upload" && (
         <UploadBatchModal onClose={closeModal} onAddBatch={handleAddBatch} institutions={institutions}/>
